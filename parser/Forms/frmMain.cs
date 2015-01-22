@@ -30,6 +30,9 @@ namespace parser
             fileDialog.Title = "Select a XML File";
             fileDialog.InitialDirectory = System.Environment.CurrentDirectory;
 
+            idDat = 0;
+            GetXmlData();
+
             if (fileDialog.ShowDialog() == DialogResult.OK)
             {
                 txtFile.Text = Path.GetFileName(fileDialog.FileName);
@@ -45,22 +48,24 @@ namespace parser
         private void btnParse_Click(object sender, EventArgs e)
         {
             if (fileName.Length == 0) return;
+            if (idDat > 0) return;
 
             idDat = DB.DB.InsertXmlHead(Path.GetFileName(fileName), XmlRead(fileName, Encoding.UTF8));
 
-            if (idDat == 0 || idDat > 0) return;
+            if (idDat == 0) return;
+
+            Cursor.Current = Cursors.WaitCursor;
 
             XmlDocument doc = new XmlDocument();
             string s = string.Empty;
-            int i = 0;
 
-            string SportID = string.Empty;
+            int SportID = 0;
             string Sport = string.Empty;
-            string CategoryID = string.Empty;
+            int CategoryID = 0;
             string Category = string.Empty;
-            string TournamentID = string.Empty;
+            int TournamentID = 0;
             string Tournament = string.Empty;
-            string MatchID = string.Empty;
+            int MatchID = 0;
             List<string> Competitors = new List<string>();
 
             doc.Load(fileName);
@@ -69,23 +74,23 @@ namespace parser
 
             foreach (XmlNode node in SportNode)
             {
-                SportID = node.Attributes["BetradarSportID"].Value;
+                SportID = Int32.Parse(node.Attributes["BetradarSportID"].Value);
                 Sport = node.SelectSingleNode("Texts//Text[@Language='BET']").InnerText;
 
                 XmlNodeList catnode = node.SelectNodes("Category");
                 foreach (XmlNode catchild in catnode)
                 {
-                    CategoryID = catchild.Attributes["BetradarCategoryID"].Value;
+                    CategoryID = Int32.Parse(catchild.Attributes["BetradarCategoryID"].Value);
                     Category = catchild.SelectSingleNode("Texts//Text[@Language='BET']").InnerText;
 
                     XmlNode TournamentNode = catchild.SelectSingleNode("Tournament");
-                    TournamentID = TournamentNode.Attributes["BetradarTournamentID"].Value;
+                    TournamentID = Int32.Parse(TournamentNode.Attributes["BetradarTournamentID"].Value);
                     Tournament = TournamentNode.SelectSingleNode("Texts/Text[@Language='BET']").InnerText;
 
                     XmlNodeList MatchNode = catchild.SelectNodes("Tournament//Match");
                     foreach (XmlNode matchild in MatchNode)
                     {
-                        MatchID = matchild.Attributes["BetradarMatchID"].Value;
+                        MatchID = Int32.Parse(matchild.Attributes["BetradarMatchID"].Value);
 
                         Competitors.Clear();
                         XmlNodeList CompetitorsNode = matchild.SelectNodes("Fixture/Competitors//Texts");
@@ -93,13 +98,17 @@ namespace parser
                         {
                             Competitors.Add(compchild.SelectSingleNode("Text//Text[@Language='BET']").InnerText);
                         }
-                        i++;
+                        DB.DB.InsertXmlData(idDat, SportID, Sport, CategoryID, Category, TournamentID, Tournament, MatchID, Competitors[0], Competitors[1]);
                     }
                 }
-            }         
+            }
+
+            Cursor.Current = Cursors.Default;
+
+            GetXmlData();
         }
 
-        private static string XmlRead(string path, Encoding encoding)
+        private string XmlRead(string path, Encoding encoding)
         {
             string result;
             using (StreamReader streamReader = new StreamReader(path, encoding))
@@ -107,6 +116,11 @@ namespace parser
                 result = streamReader.ReadToEnd();
             }
             return result;
+        }
+
+        private void GetXmlData()
+        {
+            dgv.DataSource = DB.DB.GetXmlData(idDat);
         }
     }
 }

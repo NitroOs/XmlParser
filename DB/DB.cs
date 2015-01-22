@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Data;
 
 using MySql.Data.MySqlClient;
 
@@ -44,6 +45,76 @@ namespace DB
             cn = null;
 
             return id;
+        }
+
+        public static void InsertXmlData(int idDat, int SportID, string Sport, int CategoryID, string Category, int TournamentID
+            , string Tournament, int MatchId, string Comp1, string Comp2)
+        {
+            MySqlConnection cn = default(MySqlConnection);
+            MySqlCommand cm = new MySqlCommand();
+
+            cn = new MySqlConnection(CONNECTION);
+
+            cm.Connection = cn;
+            cm.CommandText = "InsertXmlData";
+            cm.CommandType = System.Data.CommandType.StoredProcedure;
+            cm.Parameters.AddWithValue("_iddat", idDat);
+            cm.Parameters.AddWithValue("_SportID", SportID);
+            cm.Parameters.AddWithValue("_Sport", Sport);
+            cm.Parameters.AddWithValue("_CategoryID", CategoryID);
+            cm.Parameters.AddWithValue("_Category", Category);
+            cm.Parameters.AddWithValue("_TournamentID", TournamentID);
+            cm.Parameters.AddWithValue("_Tournament", Tournament);
+            cm.Parameters.AddWithValue("_MatchID", MatchId);
+            cm.Parameters.AddWithValue("_Comp1", Comp1);
+            cm.Parameters.AddWithValue("_Comp2", Comp2);
+
+            try
+            {
+                cn.Open();
+                cm.ExecuteNonQuery();
+                cn.Close();
+            }
+            catch
+            {
+                if (cn.State == System.Data.ConnectionState.Open) cn.Close();
+            }
+
+            cm.Dispose();
+            cm = null;
+            cn = null;
+        }
+
+        public static DataTable GetXmlData(int idDat)
+        {
+            DataTable dt = new DataTable();
+
+            MySqlConnection cn = new MySqlConnection(CONNECTION);
+            MySqlCommand cm = new MySqlCommand();
+            MySqlDataAdapter da = new MySqlDataAdapter();
+
+            cm.Connection = cn;
+            cm.CommandText = "GetXmlData";
+            cm.CommandType = CommandType.StoredProcedure;
+            cm.Parameters.AddWithValue("_idDat", idDat);
+            da.SelectCommand = cm;
+
+            try
+            {
+                cn.Open();
+                da.Fill(dt);
+                cn.Close();
+            }
+            catch
+            {
+                if (cn.State == System.Data.ConnectionState.Open) cn.Close();
+            }
+
+            cm.Dispose(); cm = null;
+            da.Dispose(); da = null;
+            cn = null;
+
+            return dt;
         }
     }
 }
