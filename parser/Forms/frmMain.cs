@@ -9,11 +9,14 @@ using System.Windows.Forms;
 using System.IO;
 using System.Xml;
 
+using DB;
+
 namespace parser
 {
     public partial class frmMain : Form
     {
         protected string fileName = string.Empty;
+        protected int idDat = 0;
 
         public frmMain()
         {
@@ -34,6 +37,7 @@ namespace parser
             }
             else
             {
+                txtFile.Text = string.Empty;
                 fileName = string.Empty;
             }
         }
@@ -41,6 +45,10 @@ namespace parser
         private void btnParse_Click(object sender, EventArgs e)
         {
             if (fileName.Length == 0) return;
+
+            idDat = DB.DB.InsertXmlHead(Path.GetFileName(fileName), XmlRead(fileName, Encoding.UTF8));
+
+            if (idDat == 0 || idDat > 0) return;
 
             XmlDocument doc = new XmlDocument();
             string s = string.Empty;
@@ -74,18 +82,31 @@ namespace parser
                     TournamentID = TournamentNode.Attributes["BetradarTournamentID"].Value;
                     Tournament = TournamentNode.SelectSingleNode("Texts/Text[@Language='BET']").InnerText;
 
-                    XmlNode MatchNode = catchild.SelectSingleNode("Tournament//Match");
-                    MatchID = MatchNode.Attributes["BetradarMatchID"].Value;
-
-                    Competitors.Clear();
-                    XmlNodeList CompetitorsNode = catchild.SelectNodes("Tournament/Match/Fixture/Competitors//Texts");
-                    foreach (XmlNode compchild in CompetitorsNode)
+                    XmlNodeList MatchNode = catchild.SelectNodes("Tournament//Match");
+                    foreach (XmlNode matchild in MatchNode)
                     {
-                        Competitors.Add(compchild.SelectSingleNode("Text//Text[@Language='BET']").InnerText);
+                        MatchID = matchild.Attributes["BetradarMatchID"].Value;
+
+                        Competitors.Clear();
+                        XmlNodeList CompetitorsNode = matchild.SelectNodes("Fixture/Competitors//Texts");
+                        foreach (XmlNode compchild in CompetitorsNode)
+                        {
+                            Competitors.Add(compchild.SelectSingleNode("Text//Text[@Language='BET']").InnerText);
+                        }
+                        i++;
                     }
-                    i++;
                 }
             }         
+        }
+
+        private static string XmlRead(string path, Encoding encoding)
+        {
+            string result;
+            using (StreamReader streamReader = new StreamReader(path, encoding))
+            {
+                result = streamReader.ReadToEnd();
+            }
+            return result;
         }
     }
 }
