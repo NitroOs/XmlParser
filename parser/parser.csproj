@@ -8,7 +8,7 @@
     <ProjectGuid>{AD8B93F8-83FD-44D4-A3C0-91F895D7067B}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DB</RootNamespace>
+    <RootNamespace>Parser</RootNamespace>
     <AssemblyName>parser</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -50,10 +50,19 @@
     <Compile Include="Forms\frmMain.Designer.cs">
       <DependentUpon>frmMain.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\frmParse.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\frmParse.Designer.cs">
+      <DependentUpon>frmParse.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Forms\frmMain.resx">
       <DependentUpon>frmMain.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\frmParse.resx">
+      <DependentUpon>frmParse.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

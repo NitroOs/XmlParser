@@ -6,7 +6,7 @@ using System.Data;
 
 using MySql.Data.MySqlClient;
 
-namespace DB
+namespace Parser
 {
     public class DB
     {
