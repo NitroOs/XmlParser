@@ -8,19 +8,27 @@ using System.Text;
 using System.Windows.Forms;
 using System.IO;
 using System.Xml;
+using System.Xml.Schema;
 
 using DB;
+using FN;
 
-namespace parser
+namespace DB
 {
     public partial class frmMain : Form
     {
         protected string fileName = string.Empty;
+        protected string filePath = string.Empty;
+        protected byte[] xmlFile = null;
         protected int idDat = 0;
+        protected string CRC = string.Empty;
+        //protected ValidationEventHandler veh;
 
         public frmMain()
         {
             InitializeComponent();
+
+            //veh = ValidationEventHandler;
         }
 
         private void btnOpen_Click(object sender, EventArgs e)
@@ -35,26 +43,44 @@ namespace parser
 
             if (fileDialog.ShowDialog() == DialogResult.OK)
             {
-                txtFile.Text = Path.GetFileName(fileDialog.FileName);
-                fileName = fileDialog.FileName;
+                filePath = fileDialog.FileName;
+                fileName = Path.GetFileName(filePath);
+                txtFile.Text = fileName;
+                xmlFile = System.IO.File.ReadAllBytes(filePath);
+                CRC = FN.FN.GetCRC(ref xmlFile);
             }
             else
             {
-                txtFile.Text = string.Empty;
+                filePath = string.Empty;
                 fileName = string.Empty;
+                txtFile.Text = string.Empty;
+                xmlFile = null;
+                CRC = string.Empty;
             }
         }
 
         private void btnParse_Click(object sender, EventArgs e)
         {
-            if (fileName.Length == 0) return;
+            int err = 0;
+
+            if (xmlFile == null) return;
             if (idDat > 0) return;
 
-            idDat = DB.DB.InsertXmlHead(Path.GetFileName(fileName), XmlRead(fileName, Encoding.UTF8));
+            idDat = DB.InsertXmlHead(fileName, CRC, ref err);
 
-            if (idDat == 0) return;
+            switch (err)
+            {
+                case 0: // Sve OK
+                    break;
+                case 1: // Datoteka s tim nazivom već postoji
+                    MessageBox.Show("Datoteka s tim nazivom već postoji");
+                    return;
+                case 2: // Datoteka s tim CRC-om već postoji
+                    MessageBox.Show("Datoteka s tim CRC-om već postoji");
+                    return;
+            }
 
-            Cursor.Current = Cursors.WaitCursor;
+            //FN.FN.XmlValidate(fileName, "D:\\Moji Dokumenti\\DOKUMENTI\\PROJEKTI\\bttradar\\xml\\xml-LCoO.xsd", "http://www.w3.org/2001/XMLSchema", ref veh);
 
             XmlDocument doc = new XmlDocument();
             string s = string.Empty;
@@ -68,7 +94,17 @@ namespace parser
             int MatchID = 0;
             List<string> Competitors = new List<string>();
 
-            doc.Load(fileName);
+            try
+            {
+                doc.Load(new MemoryStream(xmlFile));
+            }
+            catch
+            {
+                idDat = 0;
+                return;
+            }
+
+            Cursor.Current = Cursors.WaitCursor;
 
             XmlNode SportNode = doc.DocumentElement.SelectSingleNode("Sports");
 
@@ -98,29 +134,35 @@ namespace parser
                         {
                             Competitors.Add(compchild.SelectSingleNode("Text//Text[@Language='BET']").InnerText);
                         }
-                        DB.DB.InsertXmlData(idDat, SportID, Sport, CategoryID, Category, TournamentID, Tournament, MatchID, Competitors[0], Competitors[1]);
+                        DB.InsertXmlData(idDat, SportID, Sport, CategoryID, Category, TournamentID, Tournament, MatchID, Competitors[0], Competitors[1]);
                     }
                 }
             }
 
+            DB.UpdateXmlData(idDat, 1);
+            
             Cursor.Current = Cursors.Default;
 
             GetXmlData();
         }
 
-        private string XmlRead(string path, Encoding encoding)
-        {
-            string result;
-            using (StreamReader streamReader = new StreamReader(path, encoding))
-            {
-                result = streamReader.ReadToEnd();
-            }
-            return result;
-        }
-
         private void GetXmlData()
         {
-            dgv.DataSource = DB.DB.GetXmlData(idDat);
+            dgv.DataSource = DB.GetXmlData(idDat);
         }
+
+        //static void ValidationEventHandler(object sender, ValidationEventArgs e)
+        //{
+        //    switch (e.Severity)
+        //    {
+        //        case XmlSeverityType.Error:
+        //            Console.WriteLine("Error: {0}", e.Message);
+        //            break;
+        //        case XmlSeverityType.Warning:
+        //            Console.WriteLine("Warning {0}", e.Message);
+        //            break;
+        //    }
+
+        //}
     }
 }

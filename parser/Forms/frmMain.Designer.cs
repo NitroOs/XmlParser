@@ -1,4 +1,4 @@
-﻿namespace parser
+﻿namespace DB
 {
     partial class frmMain
     {

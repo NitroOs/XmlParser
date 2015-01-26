@@ -8,7 +8,7 @@
     <ProjectGuid>{AD8B93F8-83FD-44D4-A3C0-91F895D7067B}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>parser</RootNamespace>
+    <RootNamespace>DB</RootNamespace>
     <AssemblyName>parser</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -63,6 +63,7 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -78,6 +79,10 @@
     <ProjectReference Include="..\DB\DB.csproj">
       <Project>{4BF547A0-02C0-42D9-A6FF-437C8905E63C}</Project>
       <Name>DB</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FN\FN.csproj">
+      <Project>{79702162-A654-4E55-887A-9108B78A6716}</Project>
+      <Name>FN</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
