@@ -47,32 +47,33 @@ namespace FN
             return result;
         }
 
-        public static int XmlValidate(string xml, string xsd, string sns, ref ValidationEventHandler eventHandler)
+        public static int XmlValidate(ref MemoryStream xml, ref XmlReader xsd)
         {
-            // Set the validation settings.
             XmlReaderSettings settings = new XmlReaderSettings();
-            settings.Schemas.Add(sns, xsd);
+            settings.Schemas.Add(null, xsd);
             settings.ValidationType = ValidationType.Schema;
-            settings.ValidationFlags |= XmlSchemaValidationFlags.ProcessInlineSchema;
-            settings.ValidationFlags |= XmlSchemaValidationFlags.ProcessSchemaLocation;
-            settings.ValidationFlags |= XmlSchemaValidationFlags.ReportValidationWarnings;
-            //settings.ValidationEventHandler += new ValidationEventHandler(ValidationCallBack);
-
-            XmlReader reader = XmlReader.Create(xml, settings);
             XmlDocument document = new XmlDocument();
+
             try
             {
-                document.Load(reader);
-
-                // the following call to Validate succeeds.
-                document.Validate(eventHandler);
+                document.Load(xml);
             }
             catch
             {
-
+                return 1;
             }
 
-            return 1;
+            try
+            {
+                XmlReader reader = XmlReader.Create(new StringReader(document.InnerXml), settings);
+                while (reader.Read()) ;
+            }
+            catch
+            {
+                return 2;
+            }
+
+            return 0;
         }
     }
 }

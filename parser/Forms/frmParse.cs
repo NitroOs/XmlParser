@@ -16,15 +16,16 @@ namespace Parser.Forms
         protected string fileName = string.Empty;
         protected string filePath = string.Empty;
         protected byte[] xmlFile = null;
+        protected byte[] xsdFile = null;
         protected int idDat = 0;
         protected string CRC = string.Empty;
-        //protected ValidationEventHandler veh;
+        protected XmlReader reader = null;
 
         public frmParse()
         {
             InitializeComponent();
 
-            //veh = ValidationEventHandler;
+            xsdFile = File.ReadAllBytes("D:\\Moji Dokumenti\\DOKUMENTI\\PROJEKTI\\bttradar\\xml\\xml-LCoO.xsd");
         }
 
         private void btnOpen_Click(object sender, EventArgs e)
@@ -76,19 +77,23 @@ namespace Parser.Forms
                     return;
             }
 
-            //FN.FN.XmlValidate(fileName, "D:\\Moji Dokumenti\\DOKUMENTI\\PROJEKTI\\bttradar\\xml\\xml-LCoO.xsd", "http://www.w3.org/2001/XMLSchema", ref veh);
+            MemoryStream stream = new MemoryStream(xmlFile);
+            reader = XmlReader.Create(new MemoryStream(xsdFile));
+            err = FN.FN.XmlValidate(ref stream, ref reader);
+
+            switch (err)
+            {
+                case 0:
+                    break;
+                case 1:
+                    MessageBox.Show("Neispravna struktura XML datoteke!");
+                    return;
+                case 2:
+                    MessageBox.Show("Neispravna shema XML datoteke!");
+                    return;
+            }
 
             XmlDocument doc = new XmlDocument();
-            string s = string.Empty;
-
-            int SportID = 0;
-            string Sport = string.Empty;
-            int CategoryID = 0;
-            string Category = string.Empty;
-            int TournamentID = 0;
-            string Tournament = string.Empty;
-            int MatchID = 0;
-            List<string> Competitors = new List<string>();
 
             try
             {
@@ -101,6 +106,15 @@ namespace Parser.Forms
             }
 
             Cursor.Current = Cursors.WaitCursor;
+
+            int SportID = 0;
+            string Sport = string.Empty;
+            int CategoryID = 0;
+            string Category = string.Empty;
+            int TournamentID = 0;
+            string Tournament = string.Empty;
+            int MatchID = 0;
+            List<string> Competitors = new List<string>();
 
             XmlNode SportNode = doc.DocumentElement.SelectSingleNode("Sports");
 
@@ -146,19 +160,5 @@ namespace Parser.Forms
         {
             dgv.DataSource = DB.GetXmlData(idDat);
         }
-
-        //static void ValidationEventHandler(object sender, ValidationEventArgs e)
-        //{
-        //    switch (e.Severity)
-        //    {
-        //        case XmlSeverityType.Error:
-        //            Console.WriteLine("Error: {0}", e.Message);
-        //            break;
-        //        case XmlSeverityType.Warning:
-        //            Console.WriteLine("Warning {0}", e.Message);
-        //            break;
-        //    }
-
-        //}
     }
 }
